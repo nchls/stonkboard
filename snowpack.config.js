@@ -10,15 +10,6 @@ module.exports = {
   plugins: [
     "@snowpack/plugin-typescript"
   ],
-  packageOptions: {
-    /* ... */
-  },
-  devOptions: {
-    /* ... */
-  },
-  buildOptions: {
-    /* ... */
-  },
   optimize: {
     bundle: true,
     minify: true,
