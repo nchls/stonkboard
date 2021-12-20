@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useRecoilState } from "recoil";
 import { useDebouncedCallback } from "use-debounce";
 
-import { pinnedStocksState, PinnedStock } from "../app";
+import { pinnedStocksState, PinnedStock } from "../state/state";
 import { stockSearch, StockSearchResult } from "../api/alphavantage";
 
 export const SearchResult = (result: StockSearchResult): React.ReactElement => {
@@ -53,7 +53,7 @@ export const Search = (): React.ReactElement => {
 			<input type="text" id="search" placeholder="GME, GameStop, games" value={input} onChange={handleChange} />
 			<div className="results">
 				<ol>
-					{ searchResults.map((result) => <SearchResult {...result} />) }
+					{ searchResults.map((result: StockSearchResult) => <SearchResult key={result.symbol} {...result} />) }
 				</ol>
 			</div>
 		</div>
