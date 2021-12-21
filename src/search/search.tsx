@@ -5,24 +5,9 @@ import { useDebouncedCallback } from "use-debounce";
 import { pinnedStocksState, PinnedStock } from "../state/state";
 import { stockSearch, StockSearchResult } from "../api/alphavantage";
 
-export const SearchResult = (result: StockSearchResult): React.ReactElement => {
-	const [pinnedStocks, setPinnedStocks] = useRecoilState(pinnedStocksState);
-	
-	const handleClick = () => {
-		const stock: PinnedStock = {
-			symbol: result.symbol
-		};
-		setPinnedStocks([...pinnedStocks, stock])
-	};
+const MAX_PINNED_STOCKS = 3;
 
-	return (
-		<li>
-			<button type="button" onClick={handleClick}>
-				{ result.symbol }
-			</button>
-		</li>
-	);
-};
+export const getUniqueResultKey = (result: StockSearchResult): string => `${result.symbol}~${result.name}`;
 
 export const Search = (): React.ReactElement => {
 	const [input, setInput] = useState<string>("");
@@ -45,7 +30,7 @@ export const Search = (): React.ReactElement => {
 		} catch (err) {
 			console.error(err);
 		}
-	}, 500);
+	}, 400);
 
 	return (
 		<div className="search">
@@ -53,9 +38,40 @@ export const Search = (): React.ReactElement => {
 			<input type="text" id="search" placeholder="GME, GameStop, games" value={input} onChange={handleChange} />
 			<div className="results">
 				<ol>
-					{ searchResults.map((result: StockSearchResult) => <SearchResult key={result.symbol} {...result} />) }
+					{ searchResults.map((result: StockSearchResult) => (
+						<SearchResult key={getUniqueResultKey(result)} {...result} />
+					)) }
 				</ol>
 			</div>
 		</div>
 	);
 };
+
+export const SearchResult = (result: StockSearchResult): React.ReactElement => {
+	const [pinnedStocks, setPinnedStocks] = useRecoilState<PinnedStock[]>(pinnedStocksState);
+	
+	const handleClick = () => {
+		const stock: PinnedStock = {
+			symbol: result.symbol,
+			key: getUniqueResultKey(result),
+		};
+		setPinnedStocks([...pinnedStocks, stock])
+	};
+
+	const isMaxPinsReached = (pinnedStocks.length >= MAX_PINNED_STOCKS);
+	const isStockPinned = pinnedStocks.some((pinnedStock) => pinnedStock.key === getUniqueResultKey(result))
+
+	return (
+		<li>
+			<button 
+				type="button" 
+				onClick={handleClick} 
+				disabled={isMaxPinsReached || isStockPinned}
+				title={isMaxPinsReached ? "Remove a stock to pin a new one." : ""}
+			>
+				{ result.symbol }
+			</button>
+		</li>
+	);
+};
+

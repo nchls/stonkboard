@@ -4,6 +4,7 @@ import { StockQuote } from "../api/alphavantage";
 
 export interface PinnedStock {
 	symbol: string;
+	key: string;
 }
 
 export const pinnedStocksState = atom({
