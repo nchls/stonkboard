@@ -1,6 +1,6 @@
 import { atom } from "recoil";
 
-import { StockQuote } from "../api/alphavantage";
+import { StockQuote, EarningsResponse } from "../api/alphavantage";
 
 export interface PinnedStock {
 	symbol: string;
@@ -14,6 +14,7 @@ export const pinnedStocksState = atom({
 
 export interface CachedStock {
 	quote?: StockQuote;
+	earnings?: EarningsResponse;
 }
 
 export const cachedStocksState = atom({

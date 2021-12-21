@@ -79,7 +79,7 @@ export interface RawQuoteSearchResult {
 	"07. latest trading day": string;
 	"08. previous close": string;
 	"09. change": string;
-	"09. change percent": string;
+	"10. change percent": string;
 }
 
 export interface RawQuoteSearchResponse {
@@ -91,7 +91,7 @@ const quoteSearchResultMap = {
 	"03. high": "high",
 	"04. low": "low",
 	"05. price": "price",
-	"09. change percent": "changePercent",
+	"10. change percent": "changePercent",
 };
 
 const parseQuoteSearchResponse = (response: RawQuoteSearchResponse, map: Record<string, string>): StockQuote => {
@@ -104,6 +104,54 @@ const parseQuoteSearchResponse = (response: RawQuoteSearchResponse, map: Record<
 	}, {});
 	parsedResult.createdTime = Date.now();
 	return parsedResult as StockQuote;
+};
+
+export interface EarningsReport {
+	fiscalDateEnding: string;
+	reportedEPS: string;
+}
+
+export interface EarningsResponse {
+	createdTime: number;
+	reports: EarningsReport[];
+}
+
+export interface RawEarningsReport {
+	[key: string]: string;
+	fiscalDateEnding: string;
+	reportedDate: string;
+	reportedEPS: string;
+	estimatedEPS: string;
+	surprise: string;
+	surprisePercentage: string;
+}
+
+export interface RawEarningsSearchResponse {
+	"symbol": string;
+	"annualEarnings": Record<string, string>[];
+	"quarterlyEarnings": RawEarningsReport[];
+}
+
+const earningsReportMap = {
+	fiscalDateEnding: "fiscalDateEnding",
+	reportedEPS: "reportedEPS",
+};
+
+const parseEarningsSearchResponse = (response: RawEarningsSearchResponse, map: Record<string, string>): EarningsResponse => {
+	if (response.symbol === undefined || response.quarterlyEarnings === undefined) {
+		throw new Error("Malformed response");
+	}
+	const parsedResponse: any = {
+		reports: response.quarterlyEarnings.map((report: RawEarningsReport) => {
+			const parsedReport: any = Object.entries(earningsReportMap).reduce((accumulator: Record<string, string>, [key, value]: [string, string]) => {
+				accumulator[value] = report[key];
+				return accumulator;
+			}, {});
+			return parsedReport as EarningsReport;
+		})
+	};
+	parsedResponse.createdTime = Date.now();
+	return parsedResponse as EarningsResponse;
 };
 
 export const alphaVantageRequest = <RawResponseType, ParsedResponseType>(
@@ -145,4 +193,8 @@ export const stockSearch = (query: string): Promise<StockSearchResponse> => {
 
 export const quoteSearch = (symbol: string): Promise<StockQuote> => {
 	return alphaVantageRequest<RawQuoteSearchResponse, StockQuote>("GLOBAL_QUOTE", { symbol: symbol }, parseQuoteSearchResponse);
+};
+
+export const earningsSearch = (symbol: string): Promise<EarningsResponse> => {
+	return alphaVantageRequest<RawEarningsSearchResponse, EarningsResponse>("EARNINGS", { symbol: symbol }, parseEarningsSearchResponse);
 };
