@@ -99,28 +99,59 @@ export const Search = (): React.ReactElement => {
 							const uniqueKey = getUniqueResultKey(result);
 							const isStockPinned = pinnedStocks.some((pinnedStock) => pinnedStock.key === uniqueKey);
 							const isSelectable = !isMaxPinsReached && !isStockPinned;
-							resultRefs[index] = React.createRef();
-							
+
 							return (
-								<li key={uniqueKey} className="result">
-									<button
-										type="button"
-										onClick={() => { isSelectable && handleResultClick(result) }} 
-										className={isSelectable ? "" : "unselectable"}
-										title={isMaxPinsReached ? "Remove a stock to pin a new one." : ""}
-										ref={resultRefs[index] as LegacyRef<HTMLButtonElement>}
-										onKeyDown={(evt) => handleResultKeyDown(evt, index)}
-									>
-										<div className="symbol">{ result.symbol }</div>
-										<div className="name">{ result.name }</div>
-										<div className="type">{ result.type }</div>
-									</button>
-								</li>
+								<SearchResult 
+									key={uniqueKey}
+									result={result} 
+									index={index}
+									isSelectable={isSelectable}
+									isMaxPinsReached={isMaxPinsReached}
+									handleResultClick={handleResultClick}
+									handleResultKeyDown={handleResultKeyDown}
+								/>
 							);
 						}) }
 					</ol>
 				</div>
 			) : null }
 		</>
+	);
+};
+
+interface SearchResultProps {
+	result: StockSearchResult;
+	index: number;
+	isSelectable: boolean;
+	isMaxPinsReached: boolean;
+	handleResultClick: (result: StockSearchResult) => void;
+	handleResultKeyDown: (evt: React.KeyboardEvent, index: number) => void;
+}
+
+export const SearchResult = ({ 
+	result, 
+	index, 
+	isSelectable, 
+	isMaxPinsReached,
+	handleResultClick,
+	handleResultKeyDown,
+}: SearchResultProps): React.ReactElement => {
+	resultRefs[index] = React.createRef();
+
+	return (
+		<li className="result">
+			<button
+				type="button"
+				onClick={() => { isSelectable && handleResultClick(result) }} 
+				className={isSelectable ? "" : "unselectable"}
+				title={isMaxPinsReached ? "Remove a stock to pin a new one." : ""}
+				ref={resultRefs[index] as LegacyRef<HTMLButtonElement>}
+				onKeyDown={(evt) => handleResultKeyDown(evt, index)}
+			>
+				<div className="symbol">{ result.symbol }</div>
+				<div className="name">{ result.name }</div>
+				<div className="type">{ result.type }</div>
+			</button>
+		</li>
 	);
 };
