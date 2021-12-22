@@ -8,7 +8,8 @@ module.exports = {
     src: "/",
   },
   plugins: [
-    "@snowpack/plugin-typescript"
+    "@snowpack/plugin-typescript",
+    "@snowpack/plugin-sass"
   ],
   optimize: {
     bundle: true,

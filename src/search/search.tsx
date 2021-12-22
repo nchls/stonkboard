@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, MutableRefObject, LegacyRef, RefObject } from "react";
 import { useRecoilState } from "recoil";
 import { useDebouncedCallback } from "use-debounce";
 
@@ -9,9 +9,44 @@ const MAX_PINNED_STOCKS = 3;
 
 export const getUniqueResultKey = (result: StockSearchResult): string => `${result.symbol}~${result.name}`;
 
+const resultRefs: RefObject<HTMLButtonElement | undefined>[] = [];
+
 export const Search = (): React.ReactElement => {
 	const [input, setInput] = useState<string>("");
 	const [searchResults, setSearchResults] = useState<StockSearchResult[]>([]);
+	const [pinnedStocks, setPinnedStocks] = useRecoilState<PinnedStock[]>(pinnedStocksState);
+	
+	const isMaxPinsReached = (pinnedStocks.length >= MAX_PINNED_STOCKS);
+
+	const searchRef = useRef<HTMLInputElement>(null);
+	
+	const handleSearchKeyDown = (evt: React.KeyboardEvent) => {
+		if (evt.key === "ArrowDown") {
+			evt.preventDefault();
+			resultRefs[0].current?.focus();
+		}
+	};
+
+	const handleResultKeyDown = (evt: React.KeyboardEvent, index: number) => {
+		if (["ArrowUp", "ArrowDown"].includes(evt.key)) {
+			evt.preventDefault();
+			const prev = resultRefs[index-1];
+			const next = resultRefs[index+1];
+			if (evt.key === "ArrowDown") {
+				if (next !== undefined) {
+					next.current?.focus();
+				} else {
+					resultRefs[0].current?.focus();
+				}
+			} else {
+				if (prev !== undefined) {
+					prev.current?.focus();
+				} else {
+					searchRef.current?.focus();
+				}
+			}
+		}
+	};
 
 	const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
 		const query = evt.target.value;
@@ -29,28 +64,11 @@ export const Search = (): React.ReactElement => {
 			setSearchResults(results.bestMatches);
 		} catch (err) {
 			console.error(err);
+			setSearchResults([]);
 		}
 	}, 400);
 
-	return (
-		<div className="search">
-			<label htmlFor="search">Search for stocks</label>
-			<input type="text" id="search" placeholder="GME, GameStop, games" value={input} onChange={handleChange} />
-			<div className="results">
-				<ol>
-					{ searchResults.map((result: StockSearchResult) => (
-						<SearchResult key={getUniqueResultKey(result)} {...result} />
-					)) }
-				</ol>
-			</div>
-		</div>
-	);
-};
-
-export const SearchResult = (result: StockSearchResult): React.ReactElement => {
-	const [pinnedStocks, setPinnedStocks] = useRecoilState<PinnedStock[]>(pinnedStocksState);
-	
-	const handleClick = () => {
+	const handleResultClick = (result: StockSearchResult) => {
 		const stock: PinnedStock = {
 			symbol: result.symbol,
 			key: getUniqueResultKey(result),
@@ -58,20 +76,51 @@ export const SearchResult = (result: StockSearchResult): React.ReactElement => {
 		setPinnedStocks([...pinnedStocks, stock])
 	};
 
-	const isMaxPinsReached = (pinnedStocks.length >= MAX_PINNED_STOCKS);
-	const isStockPinned = pinnedStocks.some((pinnedStock) => pinnedStock.key === getUniqueResultKey(result))
-
 	return (
-		<li>
-			<button 
-				type="button" 
-				onClick={handleClick} 
-				disabled={isMaxPinsReached || isStockPinned}
-				title={isMaxPinsReached ? "Remove a stock to pin a new one." : ""}
-			>
-				{ result.symbol }
-			</button>
-		</li>
+		<>
+			<div className="search">
+				<div className="search-field">
+					<label htmlFor="search" className="is-sr-only">Search for stocks</label>
+					<input 
+						type="text" 
+						id="search" 
+						placeholder="Search for stocks" 
+						value={input} 
+						ref={searchRef}
+						onChange={handleChange}
+						onKeyDown={handleSearchKeyDown}
+					/>
+				</div>
+			</div>
+			{ searchResults.length ? (
+				<div className="results">
+					<ol>
+						{ searchResults.map((result: StockSearchResult, index: number) => {
+							const uniqueKey = getUniqueResultKey(result);
+							const isStockPinned = pinnedStocks.some((pinnedStock) => pinnedStock.key === uniqueKey);
+							const isSelectable = !isMaxPinsReached && !isStockPinned;
+							resultRefs[index] = React.createRef();
+							
+							return (
+								<li key={uniqueKey} className="result">
+									<button
+										type="button"
+										onClick={() => { isSelectable && handleResultClick(result) }} 
+										className={isSelectable ? "" : "unselectable"}
+										title={isMaxPinsReached ? "Remove a stock to pin a new one." : ""}
+										ref={resultRefs[index] as LegacyRef<HTMLButtonElement>}
+										onKeyDown={(evt) => handleResultKeyDown(evt, index)}
+									>
+										<div className="symbol">{ result.symbol }</div>
+										<div className="name">{ result.name }</div>
+										<div className="type">{ result.type }</div>
+									</button>
+								</li>
+							);
+						}) }
+					</ol>
+				</div>
+			) : null }
+		</>
 	);
 };
-

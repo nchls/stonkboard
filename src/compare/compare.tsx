@@ -8,11 +8,10 @@ export const Compare = (): React.ReactElement => {
 	const pinnedStocks = useRecoilValue<PinnedStock[]>(pinnedStocksState);
 
 	return (
-		<>
-			<h3>Comparison</h3>
+		<div className="pinned-stocks">
 			{ pinnedStocks.map((pinnedStock: PinnedStock) => {
 				return <Stock key={pinnedStock.key} stock={pinnedStock} />
 			}) }
-		</>
+		</div>
 	);
 };

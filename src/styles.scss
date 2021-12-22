@@ -1,0 +1,148 @@
+$scheme-main: #112015;
+$text: #ddd;
+
+#app {
+	background: darken($scheme-main, 1%);
+}
+
+.wrap {
+	background: $scheme-main;
+	margin: 0 auto;
+	max-width: 1400px;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	min-height: 100vh;
+}
+
+.app-header {
+	color: #fff;
+	opacity: .05;
+	font-size: calc(2em + 8vw);
+	line-height: 0.6;
+	margin: 0 auto;
+	text-transform: uppercase;
+	font-weight: bold;
+	padding: 16px;
+	position: absolute;
+	width: 100%;
+	pointer-events: none;
+	text-align: center;
+}
+
+.search {
+	width: 100%;
+	padding: 16px;
+
+	.search-field {
+		font-size: calc(2em + 7vw);
+		height: .7em;
+		display: flex;
+		align-items: center;
+
+		input {
+			display: block;
+			border: solid 1px #587;
+			margin: 0 auto;
+			font-size: calc(1.2rem + 1.5vw);
+			background-color: rgba(0, 0, 0, 0.3);
+			color: #bbb;
+			transition: all 0.2s;
+			width: 10em;
+			border-radius: 3px;
+			&:hover,
+			&:focus {
+				background-color: rgba(0, 0, 0, 0.5);
+				color: $text;
+			}
+		}
+	}
+}
+
+.results {
+	width: 20em;
+	max-height: 40vh;
+	overflow: auto;
+	margin: 0 auto;
+	background: lighten($scheme-main, 5%);
+	box-shadow: 0 5px 5px 2px rgba(0,0,0,0.2);
+
+	.result {
+		display: block;
+		list-style: none;
+		margin: 0 auto;
+
+		button {
+			display: flex;
+			flex-direction: column;
+			width: 100%;
+			background: transparent;
+			cursor: pointer;
+			border: solid 1px transparent;
+			color: $text;
+			text-align: left;
+			position: relative;
+			padding: 5px 16px;
+			transition: all 0.2s;
+
+			&:hover,
+			&:focus {
+				background: lighten($scheme-main, 2%);
+			}
+
+			&.unselectable {
+				opacity: 0.6;
+			}
+			
+			&:focus {
+				&::before {
+					display: block;
+					content: "»";
+					position: absolute;
+					left: 3px;
+					top: 2px;
+					font-size: 1.3rem;				
+				}
+			}
+
+			.symbol {
+				font-size: 1.2rem;
+				font-weight: bold;
+			}
+
+			.name, .type {
+				font-size: 0.8rem;
+				color: darken($text, 15%);
+			}
+
+			.type {
+				position: absolute;
+				top: 5px;
+				right: 16px;
+			}
+		}
+	}
+}
+
+.pinned-stocks {
+	margin-top: auto;
+	display: flex;
+
+	.stock {
+		width: 33.33%;
+		margin: 16px;
+		position: relative;
+	
+		.remove-stock {
+			position: absolute;
+			top: 0;
+			right: 0;
+		}
+
+		.recharts-cartesian-axis-tick-value {
+			fill: $text;
+		}
+	}
+}
+
+@import "bulma/bulma.sass";

@@ -5,10 +5,10 @@ import { Compare } from "../compare/compare";
 
 export const Dashboard = (): React.ReactElement => {
 	return (
-		<>
-			<h2>Stonkboard</h2>
+		<div className="wrap">
+			<h1 className="app-header">Stonkboard</h1>
 			<Search />
 			<Compare />
-		</>
+		</div>
 	);
 };

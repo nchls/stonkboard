@@ -89,7 +89,7 @@ export const Stock = ({ stock }: StockProps): React.ReactElement => {
 			{ earningsData.length ? (
 				<ResponsiveContainer width="100%" height={200}>
 					<LineChart data={earningsData}>
-						<Line type="monotone" dataKey="EPS" stroke="#8884d8" />
+						<Line type="monotone" dataKey="EPS" stroke="#8884d8" fill="#dddddd" />
 						<CartesianGrid stroke="#ccc" />
 						<XAxis 
 							dataKey="ts"
@@ -102,9 +102,12 @@ export const Stock = ({ stock }: StockProps): React.ReactElement => {
 			) : null }
   			<button
 				type="button"
+				title="Remove"
+				className="remove-stock button is-small is-danger"
 				onClick={unpinStock}
 			>
-				Remove
+				<span className="is-sr-only">Remove</span>
+				<span aria-hidden="true">✖</span>
 			</button>
 		</div>
 	);
