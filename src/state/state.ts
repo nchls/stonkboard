@@ -1,6 +1,6 @@
 import { atom } from "recoil";
 
-import { StockQuote, EarningsResponse } from "../api/alphavantage";
+import { StockQuote, EarningsResponse } from "../api/interfaces";
 
 export interface PinnedStock {
 	symbol: string;

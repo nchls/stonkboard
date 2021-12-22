@@ -3,8 +3,9 @@ import { useRecoilState } from "recoil";
 import { getUnixTime, fromUnixTime, parseISO, format } from 'date-fns';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-import { quoteSearch, earningsSearch, EarningsReport } from "../api/alphavantage";
+import { quoteSearch, earningsSearch } from "../api/api";
 import { PinnedStock, pinnedStocksState, CachedStock, cachedStocksState } from "../state/state";
+import { EarningsReport } from "../api/interfaces";
 
 
 interface StockProps {

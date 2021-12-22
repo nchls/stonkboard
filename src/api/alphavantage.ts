@@ -1,20 +1,5 @@
 import { ALPHA_VANTAGE_API_URL, ALPHA_VANTAGE_API_KEY } from "../settings";
-
-export interface StockSearchResult {
-	symbol: string;
-	name: string;
-	type: string;
-	region: string;
-	marketOpen: string;
-	marketClose: string;
-	timezone: string;
-	currency: string;
-	matchScore: string;
-}
-
-export interface StockSearchResponse {
-	bestMatches: StockSearchResult[];
-}
+import { EarningsReport, EarningsResponse, StockQuote, StockSearchResponse } from "./interfaces";
 
 export interface RawStockSearchResult {
 	"1. symbol": string;
@@ -44,7 +29,7 @@ const stockSearchResultMap = {
 	"9. matchScore": "matchScore",
 };
 
-const parseStockSearchResponse = (response: RawStockSearchResponse, map: Record<string, string>): StockSearchResponse => {
+export const parseStockSearchResponse = (response: RawStockSearchResponse, map: Record<string, string>): StockSearchResponse => {
 	if (response["bestMatches"] === undefined) {
 		throw new Error("Malformed response");
 	}
@@ -58,15 +43,6 @@ const parseStockSearchResponse = (response: RawStockSearchResponse, map: Record<
 	};
 	return parsedResult as StockSearchResponse;
 };
-
-export interface StockQuote {
-	createdTime: number;
-	open: string;
-	high: string;
-	low: string;
-	price: string;
-	changePercent: string;
-}
 
 export interface RawQuoteSearchResult {
 	[key: string]: string;
@@ -94,7 +70,7 @@ const quoteSearchResultMap = {
 	"10. change percent": "changePercent",
 };
 
-const parseQuoteSearchResponse = (response: RawQuoteSearchResponse, map: Record<string, string>): StockQuote => {
+export const parseQuoteSearchResponse = (response: RawQuoteSearchResponse, map: Record<string, string>): StockQuote => {
 	if (response["Global Quote"] === undefined) {
 		throw new Error("Malformed response");
 	}
@@ -105,16 +81,6 @@ const parseQuoteSearchResponse = (response: RawQuoteSearchResponse, map: Record<
 	parsedResult.createdTime = Date.now();
 	return parsedResult as StockQuote;
 };
-
-export interface EarningsReport {
-	fiscalDateEnding: string;
-	reportedEPS: string;
-}
-
-export interface EarningsResponse {
-	createdTime: number;
-	reports: EarningsReport[];
-}
 
 export interface RawEarningsReport {
 	[key: string]: string;
@@ -137,7 +103,7 @@ const earningsReportMap = {
 	reportedEPS: "reportedEPS",
 };
 
-const parseEarningsSearchResponse = (response: RawEarningsSearchResponse, map: Record<string, string>): EarningsResponse => {
+export const parseEarningsSearchResponse = (response: RawEarningsSearchResponse, map: Record<string, string>): EarningsResponse => {
 	if (response.symbol === undefined || response.quarterlyEarnings === undefined) {
 		throw new Error("Malformed response");
 	}
@@ -185,16 +151,4 @@ export const alphaVantageRequest = <RawResponseType, ParsedResponseType>(
 				reject(response);
 			});
 	});
-};
-
-export const stockSearch = (query: string): Promise<StockSearchResponse> => {
-	return alphaVantageRequest<RawStockSearchResponse, StockSearchResponse>("SYMBOL_SEARCH", { keywords: query }, parseStockSearchResponse);
-};
-
-export const quoteSearch = (symbol: string): Promise<StockQuote> => {
-	return alphaVantageRequest<RawQuoteSearchResponse, StockQuote>("GLOBAL_QUOTE", { symbol: symbol }, parseQuoteSearchResponse);
-};
-
-export const earningsSearch = (symbol: string): Promise<EarningsResponse> => {
-	return alphaVantageRequest<RawEarningsSearchResponse, EarningsResponse>("EARNINGS", { symbol: symbol }, parseEarningsSearchResponse);
 };

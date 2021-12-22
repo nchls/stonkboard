@@ -3,7 +3,8 @@ import { useRecoilState } from "recoil";
 import { useDebouncedCallback } from "use-debounce";
 
 import { pinnedStocksState, PinnedStock } from "../state/state";
-import { stockSearch, StockSearchResult } from "../api/alphavantage";
+import { stockSearch } from "../api/api";
+import { StockSearchResult } from "../api/interfaces";
 
 const MAX_PINNED_STOCKS = 3;
 
