@@ -4,6 +4,7 @@ import { StockQuote, EarningsResponse } from "../api/interfaces";
 
 export interface PinnedStock {
 	symbol: string;
+	name: string;
 	key: string;
 }
 

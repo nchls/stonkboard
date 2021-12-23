@@ -20,24 +20,20 @@ interface EarningsDataPoint {
 // Five years of quarterly reports
 const MAX_REPORTS = 20;
 
-export const getEarningsData = (reports: EarningsReport[] | undefined): [EarningsDataPoint[], number, number] => {
+export const getEarningsData = (reports: EarningsReport[] | undefined): EarningsDataPoint[] => {
 	let dataPoints: EarningsDataPoint[] = [];
-	let minEPS = Infinity;
-	let maxEPS = -Infinity;
 	if (reports !== undefined) {
 		dataPoints = reports.slice(0, MAX_REPORTS).map((report: EarningsReport) => {
 			const dt = parseISO(report.fiscalDateEnding);
 			const ts = getUnixTime(dt);
 			const eps = parseFloat(report.reportedEPS);
-			minEPS = Math.min(minEPS, eps);
-			maxEPS = Math.max(maxEPS, eps);
 			return {
 				ts: ts,
 				EPS: eps
 			};
 		}).reverse();
 	}
-	return [dataPoints, minEPS, maxEPS];
+	return dataPoints;
 };
 
 export const formatChartDate = (ts: number): string => {
@@ -83,35 +79,46 @@ export const Stock = ({ stock }: StockProps): React.ReactElement => {
 		setPinnedStocks(rest);
 	};
 
-	const [earningsData, minEPS, maxEPS] = getEarningsData(cachedStock?.earnings?.reports);
+	const earningsData = getEarningsData(cachedStock?.earnings?.reports);
 
 	return (
 		<div className="stock">
-			<h4 className="symbol">{ stock.symbol }</h4>
+			<h4><span className="symbol">{ stock.symbol }</span>&nbsp;&nbsp;{ stock.name }</h4>
 			{ requestError !== undefined ? (
 				<p className="stock-error">
 					{ requestError instanceof RateLimitError 
 						? "Rate limit exceeded :(. Try again in a minute." 
 						: "Unexpected error!" }
 				</p>
-			) : null }			
-			{ cachedStock?.quote ? (
-				<p>Open: { cachedStock?.quote?.open }</p>
-			) : null}
-			{ earningsData.length ? (
-				<ResponsiveContainer width="100%" height={200}>
-					<LineChart data={earningsData}>
-						<Line type="monotone" dataKey="EPS" stroke="#8884d8" fill="#dddddd" />
-						<CartesianGrid stroke="#ccc" />
-						<XAxis 
-							dataKey="ts"
-							tickFormatter={formatChartDate}
-						/>
-						<YAxis />
-						<Tooltip formatter={(val: string) => val} labelFormatter={formatChartDate} />
-					</LineChart>
-				</ResponsiveContainer>
 			) : null }
+			{ cachedStock?.quote ? (
+				<div className="stats">
+					<div className="price">${ cachedStock?.quote?.price }</div>
+					<div className="change-percent">
+						{ parseFloat(cachedStock?.quote?.changePercent) > 0
+							? "🔼 "
+							: "🔽 "
+						}
+						{ cachedStock?.quote?.changePercent }
+					</div>
+				</div>
+			) : null}
+			<div className="earnings-chart">
+				{ earningsData.length ? (
+					<ResponsiveContainer width="100%" height={160}>
+						<LineChart data={earningsData}>
+							<Line type="monotone" dataKey="EPS" stroke="#8884d8" fill="#dddddd" />
+							<CartesianGrid stroke="#ccc" />
+							<XAxis 
+								dataKey="ts"
+								tickFormatter={formatChartDate}
+							/>
+							<YAxis />
+							<Tooltip formatter={(val: string) => val} labelFormatter={formatChartDate} />
+						</LineChart>
+					</ResponsiveContainer>
+				) : null }
+			</div>
   			<button
 				type="button"
 				title="Remove"

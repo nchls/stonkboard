@@ -17,17 +17,25 @@ $text: #ddd;
 
 .app-header {
 	color: #fff;
-	opacity: .05;
-	font-size: calc(2em + 8vw);
-	line-height: 0.6;
+	font-size: 2rem;
 	margin: 0 auto;
 	text-transform: uppercase;
 	font-weight: bold;
-	padding: 16px;
-	position: absolute;
-	width: 100%;
-	pointer-events: none;
 	text-align: center;
+
+	@media(min-width: 570px) {
+		padding: 16px;
+		opacity: .05;
+		font-size: calc(2em + 8vw);
+		line-height: 0.6;
+		position: absolute;
+		width: 100%;
+		pointer-events: none;
+	}
+
+	@media(min-width: 1600px) {
+		font-size: 10rem;
+	}
 }
 
 .search {
@@ -40,6 +48,10 @@ $text: #ddd;
 		display: flex;
 		align-items: center;
 
+		@media(min-width: 1600px) {
+			font-size: 9rem;
+		}
+
 		input {
 			display: block;
 			border: solid 1px #587;
@@ -50,6 +62,11 @@ $text: #ddd;
 			transition: all 0.2s;
 			width: 10em;
 			border-radius: 3px;
+
+			@media(min-width: 1600px) {
+				font-size: 2.7rem;
+			}
+
 			&:hover,
 			&:focus {
 				background-color: rgba(0, 0, 0, 0.5);
@@ -137,6 +154,23 @@ $text: #ddd;
 		margin: 16px;
 		position: relative;
 	
+		h4 {
+			margin-right: 3em;
+		}
+
+		.symbol {
+			font-size: 1.4rem;
+			font-weight: bold;
+		}
+
+		.stats {
+			display: flex;
+		}
+
+		.price {
+			margin-right: 2em;
+		}
+
 		.remove-stock {
 			position: absolute;
 			top: 0;
@@ -146,6 +180,10 @@ $text: #ddd;
 		.recharts-cartesian-axis-tick-value {
 			fill: $text;
 		}
+	}
+
+	.earnings-chart {
+		height: 160px;
 	}
 }
 

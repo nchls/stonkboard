@@ -77,6 +77,7 @@ export const Search = (): React.ReactElement => {
 	const handleResultClick = (result: StockSearchResult) => {
 		const stock: PinnedStock = {
 			symbol: result.symbol,
+			name: result.name,
 			key: getUniqueResultKey(result),
 		};
 		setPinnedStocks([...pinnedStocks, stock])
