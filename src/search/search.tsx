@@ -14,6 +14,7 @@ const resultRefs: RefObject<HTMLButtonElement | undefined>[] = [];
 
 export const Search = (): React.ReactElement => {
 	const [input, setInput] = useState<string>("");
+	const [isSearching, setIsSearching] = useState<boolean>(false);
 	const [searchResults, setSearchResults] = useState<StockSearchResult[]>([]);
 	const [requestError, setRequestError] = useState<Error | undefined>();
 	const [pinnedStocks, setPinnedStocks] = useRecoilState<PinnedStock[]>(pinnedStocksState);
@@ -59,19 +60,22 @@ export const Search = (): React.ReactElement => {
 	const performSearch = useDebouncedCallback(async (query: string): Promise<void> => {
 		if (query.length === 0) {
 			setSearchResults([]);
+			setIsSearching(false);
 			return;
 		}
 		try {
+			setIsSearching(true);
 			const results = await stockSearch(query);
 			setSearchResults(results.bestMatches);
 			setRequestError(undefined);
 		} catch (err) {
+			setSearchResults([]);
 			setRequestError(err as Error);
 			if (!(err instanceof RateLimitError)) {
 				console.error(err);
 			}
-			setSearchResults([]);
 		}
+		setIsSearching(false);
 	}, 400);
 
 	const handleResultClick = (result: StockSearchResult) => {
@@ -98,14 +102,16 @@ export const Search = (): React.ReactElement => {
 						onKeyDown={handleSearchKeyDown}
 					/>
 				</div>
+				{ requestError !== undefined ? (
+					<div className="search-message">
+						{ requestError instanceof RateLimitError 
+							? "Rate limit exceeded :(. Try again in a minute." 
+							: "Unexpected error!" }
+					</div>
+				) : (
+					isSearching ? <div className="search-message">Searching...</div> : null
+				) }
 			</div>
-			{ requestError !== undefined ? (
-				<div className="search-error">
-					{ requestError instanceof RateLimitError 
-						? "Rate limit exceeded :(. Try again in a minute." 
-						: "Unexpected error!" }
-				</div>
-			) : null }
 			{ searchResults.length ? (
 				<div className="results">
 					<ol>
