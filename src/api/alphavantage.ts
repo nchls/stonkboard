@@ -1,5 +1,9 @@
 import { ALPHA_VANTAGE_API_URL, ALPHA_VANTAGE_API_KEY } from "../settings";
-import { EarningsReport, EarningsResponse, StockQuote, StockSearchResponse } from "./interfaces";
+import { EarningsReport, EarningsResponse, RateLimitError, StockQuote, StockSearchResponse } from "./interfaces";
+
+export const isRateLimitingResponse = (response: RawStockSearchResponse | RawQuoteSearchResponse | RawEarningsSearchResponse): boolean => {
+	return response.Note !== undefined && response.Note.includes("Thank you for using Alpha Vantage!");
+};
 
 export interface RawStockSearchResult {
 	"1. symbol": string;
@@ -14,7 +18,8 @@ export interface RawStockSearchResult {
 }
 
 export interface RawStockSearchResponse {
-	bestMatches: RawStockSearchResult[];
+	"Note"?: string;
+	"bestMatches": RawStockSearchResult[];
 }
 
 const stockSearchResultMap = {
@@ -30,8 +35,8 @@ const stockSearchResultMap = {
 };
 
 export const parseStockSearchResponse = (response: RawStockSearchResponse, map: Record<string, string>): StockSearchResponse => {
-	if (response["bestMatches"] === undefined) {
-		throw new Error("Malformed response");
+	if (isRateLimitingResponse(response)) {
+		throw new RateLimitError();
 	}
 	const parsedResult: unknown = {
 		bestMatches: response.bestMatches.map((result: RawStockSearchResult) => {
@@ -59,6 +64,7 @@ export interface RawQuoteSearchResult {
 }
 
 export interface RawQuoteSearchResponse {
+	"Note"?: string;
 	"Global Quote": RawQuoteSearchResult;
 }
 
@@ -71,8 +77,8 @@ const quoteSearchResultMap = {
 };
 
 export const parseQuoteSearchResponse = (response: RawQuoteSearchResponse, map: Record<string, string>): StockQuote => {
-	if (response["Global Quote"] === undefined) {
-		throw new Error("Malformed response");
+	if (isRateLimitingResponse(response)) {
+		throw new RateLimitError();
 	}
 	const parsedResult: any = Object.entries(quoteSearchResultMap).reduce((accumulator: Record<string, string>, [key, value]: [string, string]) => {
 		accumulator[value] = response["Global Quote"][key];
@@ -93,6 +99,7 @@ export interface RawEarningsReport {
 }
 
 export interface RawEarningsSearchResponse {
+	"Note"?: string;
 	"symbol": string;
 	"annualEarnings": Record<string, string>[];
 	"quarterlyEarnings": RawEarningsReport[];
@@ -104,18 +111,25 @@ const earningsReportMap = {
 };
 
 export const parseEarningsSearchResponse = (response: RawEarningsSearchResponse, map: Record<string, string>): EarningsResponse => {
-	if (response.symbol === undefined || response.quarterlyEarnings === undefined) {
-		throw new Error("Malformed response");
+	if (isRateLimitingResponse(response)) {
+		throw new RateLimitError();
 	}
-	const parsedResponse: any = {
-		reports: response.quarterlyEarnings.map((report: RawEarningsReport) => {
-			const parsedReport: any = Object.entries(earningsReportMap).reduce((accumulator: Record<string, string>, [key, value]: [string, string]) => {
-				accumulator[value] = report[key];
-				return accumulator;
-			}, {});
-			return parsedReport as EarningsReport;
-		})
-	};
+	let parsedResponse: any;
+	if (response.quarterlyEarnings !== undefined) {
+		parsedResponse = {
+			reports: response.quarterlyEarnings.map((report: RawEarningsReport) => {
+				const parsedReport: any = Object.entries(earningsReportMap).reduce((accumulator: Record<string, string>, [key, value]: [string, string]) => {
+					accumulator[value] = report[key];
+					return accumulator;
+				}, {});
+				return parsedReport as EarningsReport;
+			})
+		};
+	} else {
+		parsedResponse = {
+			reports: []
+		};
+	}
 	parsedResponse.createdTime = Date.now();
 	return parsedResponse as EarningsResponse;
 };
@@ -135,7 +149,7 @@ export const alphaVantageRequest = <RawResponseType, ParsedResponseType>(
 		fetch(`${ALPHA_VANTAGE_API_URL}?${queryString}`)
 			.then((response: Response): void => {
 				if (!response.ok) {
-					reject();
+					reject(new Error("HTTP connection failure"));
 					return;
 				}
 				response.json()
@@ -143,12 +157,10 @@ export const alphaVantageRequest = <RawResponseType, ParsedResponseType>(
 						const parsedResponse = parser(response, stockSearchResultMap);
 						resolve(parsedResponse);
 					})
-					.catch((error): void => {
-						console.error("error", error);
-					});
+					.catch(reject);
 			})
 			.catch((response: Response): void => {
-				reject(response);
+				reject(new Error("Bad response from API"));
 			});
 	});
 };

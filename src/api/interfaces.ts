@@ -32,3 +32,5 @@ export interface EarningsResponse {
 	createdTime: number;
 	reports: EarningsReport[];
 }
+
+export class RateLimitError extends Error {}

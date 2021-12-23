@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRecoilState } from "recoil";
 import { getUnixTime, fromUnixTime, parseISO, format } from 'date-fns';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 import { quoteSearch, earningsSearch } from "../api/api";
 import { PinnedStock, pinnedStocksState, CachedStock, cachedStocksState } from "../state/state";
-import { EarningsReport } from "../api/interfaces";
+import { EarningsReport, RateLimitError } from "../api/interfaces";
 
 
 interface StockProps {
@@ -47,6 +47,7 @@ export const formatChartDate = (ts: number): string => {
 export const Stock = ({ stock }: StockProps): React.ReactElement => {
 	const [cachedStocks, setCachedStocks] = useRecoilState<Record<string, CachedStock>>(cachedStocksState);
 	const [pinnedStocks, setPinnedStocks] = useRecoilState<PinnedStock[]>(pinnedStocksState);
+	const [requestError, setRequestError] = useState<Error | undefined>();
 
 	const cachedStock: CachedStock = cachedStocks[stock.key];
 
@@ -66,7 +67,10 @@ export const Stock = ({ stock }: StockProps): React.ReactElement => {
 						},
 					});
 				} catch (err) {
-					console.error(err);
+					setRequestError(err as Error);
+					if (!(err instanceof RateLimitError)) {
+						console.error(err);
+					}
 				}
 			}
 		})();
@@ -84,6 +88,13 @@ export const Stock = ({ stock }: StockProps): React.ReactElement => {
 	return (
 		<div className="stock">
 			<h4 className="symbol">{ stock.symbol }</h4>
+			{ requestError !== undefined ? (
+				<p className="stock-error">
+					{ requestError instanceof RateLimitError 
+						? "Rate limit exceeded :(. Try again in a minute." 
+						: "Unexpected error!" }
+				</p>
+			) : null }			
 			{ cachedStock?.quote ? (
 				<p>Open: { cachedStock?.quote?.open }</p>
 			) : null}

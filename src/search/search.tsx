@@ -4,7 +4,7 @@ import { useDebouncedCallback } from "use-debounce";
 
 import { pinnedStocksState, PinnedStock } from "../state/state";
 import { stockSearch } from "../api/api";
-import { StockSearchResult } from "../api/interfaces";
+import { RateLimitError, StockSearchResult } from "../api/interfaces";
 
 const MAX_PINNED_STOCKS = 3;
 
@@ -15,6 +15,7 @@ const resultRefs: RefObject<HTMLButtonElement | undefined>[] = [];
 export const Search = (): React.ReactElement => {
 	const [input, setInput] = useState<string>("");
 	const [searchResults, setSearchResults] = useState<StockSearchResult[]>([]);
+	const [requestError, setRequestError] = useState<Error | undefined>();
 	const [pinnedStocks, setPinnedStocks] = useRecoilState<PinnedStock[]>(pinnedStocksState);
 	
 	const isMaxPinsReached = (pinnedStocks.length >= MAX_PINNED_STOCKS);
@@ -63,8 +64,12 @@ export const Search = (): React.ReactElement => {
 		try {
 			const results = await stockSearch(query);
 			setSearchResults(results.bestMatches);
+			setRequestError(undefined);
 		} catch (err) {
-			console.error(err);
+			setRequestError(err as Error);
+			if (!(err instanceof RateLimitError)) {
+				console.error(err);
+			}
 			setSearchResults([]);
 		}
 	}, 400);
@@ -93,6 +98,13 @@ export const Search = (): React.ReactElement => {
 					/>
 				</div>
 			</div>
+			{ requestError !== undefined ? (
+				<div className="search-error">
+					{ requestError instanceof RateLimitError 
+						? "Rate limit exceeded :(. Try again in a minute." 
+						: "Unexpected error!" }
+				</div>
+			) : null }
 			{ searchResults.length ? (
 				<div className="results">
 					<ol>
