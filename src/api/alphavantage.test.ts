@@ -1,4 +1,12 @@
+import { waitFor } from "@testing-library/react";
+import "isomorphic-fetch";
+
+import { rest } from 'msw';
+import { setupServer } from 'msw/node';
+import { ALPHA_VANTAGE_API_URL } from '../settings';
+
 import { 
+	alphaVantageRequest,
 	earningsReportMap, 
 	isRateLimitingResponse, 
 	parseEarningsSearchResponse, 
@@ -191,6 +199,49 @@ describe('parseEarningsSearchResponse', () => {
 		expect(() => {
 			parseEarningsSearchResponse(mockRateLimitedResponse as RawEarningsSearchResponse, earningsReportMap)
 		}).toThrow(RateLimitError);
+	});
+});
+
+describe('alphaVantageRequest', () => {
+	const server = setupServer(
+		rest.get(ALPHA_VANTAGE_API_URL, (req, res, ctx) => {
+			return res(ctx.json(mockRawQuoteSearchResponse));
+		})
+	);
+
+	beforeAll(() => server.listen());
+
+	afterEach(() => server.resetHandlers());
+
+	afterAll(() => server.close());
+
+	const mockFn = 'STONKS';
+	const mockParams = {
+		eggs: 'bacon',
+		ham: 'spam',
+	};
+
+	it('makes a request to the Alpha Vantage API, parses the response, and returns the formatted object', async () => {
+		try {
+			const response = await alphaVantageRequest(mockFn, mockParams, parseQuoteSearchResponse)
+			expect(response).toEqual({
+				open: '10.0500',
+				high: '10.0500',
+				low: '10.0500',
+				price: '10.0500',
+				changePercent: '0.0000%'
+			});
+		} catch (err) {
+			console.error(err);
+		}
+	});
+
+	it('rejects on a server error', () => {
+
+	});
+
+	it('rejects on an HTTP error', () => {
+		
 	});
 });
 

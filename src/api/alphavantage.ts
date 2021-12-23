@@ -143,7 +143,7 @@ export const alphaVantageRequest = <RawResponseType, ParsedResponseType>(
 		fetch(`${ALPHA_VANTAGE_API_URL}?${queryString}`)
 			.then((response: Response): void => {
 				if (!response.ok) {
-					reject(new Error("HTTP connection failure"));
+					reject(new Error("Bad response from API"));
 					return;
 				}
 				response.json()
@@ -154,7 +154,7 @@ export const alphaVantageRequest = <RawResponseType, ParsedResponseType>(
 					.catch(reject);
 			})
 			.catch((response: Response): void => {
-				reject(new Error("Bad response from API"));
+				reject(new Error("HTTP connection failure"));
 			});
 	});
 };
