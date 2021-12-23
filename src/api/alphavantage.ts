@@ -1,10 +1,6 @@
 import { ALPHA_VANTAGE_API_URL, ALPHA_VANTAGE_API_KEY } from "../settings";
 import { EarningsReport, EarningsResponse, RateLimitError, StockQuote, StockSearchResponse } from "./interfaces";
 
-export const isRateLimitingResponse = (response: RawStockSearchResponse | RawQuoteSearchResponse | RawEarningsSearchResponse): boolean => {
-	return response.Note !== undefined && response.Note.includes("Thank you for using Alpha Vantage!");
-};
-
 export interface RawStockSearchResult {
 	"1. symbol": string;
 	"2. name": string;
@@ -22,7 +18,7 @@ export interface RawStockSearchResponse {
 	"bestMatches": RawStockSearchResult[];
 }
 
-const stockSearchResultMap = {
+export const stockSearchResultMap = {
 	"1. symbol": "symbol",
 	"2. name": "name",
 	"3. type": "type",
@@ -68,7 +64,7 @@ export interface RawQuoteSearchResponse {
 	"Global Quote": RawQuoteSearchResult;
 }
 
-const quoteSearchResultMap = {
+export const quoteSearchResultMap = {
 	"02. open": "open",
 	"03. high": "high",
 	"04. low": "low",
@@ -84,7 +80,6 @@ export const parseQuoteSearchResponse = (response: RawQuoteSearchResponse, map: 
 		accumulator[value] = response["Global Quote"][key];
 		return accumulator;
 	}, {});
-	parsedResult.createdTime = Date.now();
 	return parsedResult as StockQuote;
 };
 
@@ -101,11 +96,11 @@ export interface RawEarningsReport {
 export interface RawEarningsSearchResponse {
 	"Note"?: string;
 	"symbol": string;
-	"annualEarnings": Record<string, string>[];
-	"quarterlyEarnings": RawEarningsReport[];
+	"annualEarnings"?: Record<string, string>[];
+	"quarterlyEarnings"?: RawEarningsReport[];
 }
 
-const earningsReportMap = {
+export const earningsReportMap = {
 	fiscalDateEnding: "fiscalDateEnding",
 	reportedEPS: "reportedEPS",
 };
@@ -130,7 +125,6 @@ export const parseEarningsSearchResponse = (response: RawEarningsSearchResponse,
 			reports: []
 		};
 	}
-	parsedResponse.createdTime = Date.now();
 	return parsedResponse as EarningsResponse;
 };
 
@@ -163,4 +157,8 @@ export const alphaVantageRequest = <RawResponseType, ParsedResponseType>(
 				reject(new Error("Bad response from API"));
 			});
 	});
+};
+
+export const isRateLimitingResponse = (response: RawStockSearchResponse | RawQuoteSearchResponse | RawEarningsSearchResponse): boolean => {
+	return response.Note !== undefined && response.Note.includes("Thank you for using Alpha Vantage!");
 };

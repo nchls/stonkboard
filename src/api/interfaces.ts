@@ -15,7 +15,6 @@ export interface StockSearchResponse {
 }
 
 export interface StockQuote {
-	createdTime: number;
 	open: string;
 	high: string;
 	low: string;
@@ -29,7 +28,6 @@ export interface EarningsReport {
 }
 
 export interface EarningsResponse {
-	createdTime: number;
 	reports: EarningsReport[];
 }
 
