@@ -1,4 +1,3 @@
-import { waitFor } from "@testing-library/react";
 import "isomorphic-fetch";
 
 import { rest } from 'msw';
@@ -216,10 +215,7 @@ describe('alphaVantageRequest', () => {
 	afterAll(() => server.close());
 
 	const mockFn = 'STONKS';
-	const mockParams = {
-		eggs: 'bacon',
-		ham: 'spam',
-	};
+	const mockParams = {};
 
 	it('makes a request to the Alpha Vantage API, parses the response, and returns the formatted object', async () => {
 		try {
@@ -236,12 +232,17 @@ describe('alphaVantageRequest', () => {
 		}
 	});
 
-	it('rejects on a server error', () => {
-
-	});
-
-	it('rejects on an HTTP error', () => {
-		
+	it('rejects on a server error', async () => {
+		server.use(
+			rest.get(ALPHA_VANTAGE_API_URL, (req, res, ctx) => {
+				return res(ctx.status(500));
+			})
+		);
+		try {
+			await alphaVantageRequest(mockFn, mockParams, parseQuoteSearchResponse)
+		} catch (err) {
+			expect(err).toEqual(new Error("Bad response from API"));
+		}
 	});
 });
 

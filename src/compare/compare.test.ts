@@ -1,9 +1,5 @@
-import { rest } from "msw";
-import { setupServer } from "msw/node";
 import { EarningsReport } from "../api/interfaces";
-import { ALPHA_VANTAGE_API_URL } from "../settings";
 import { formatChartDate, getEarningsData } from "./compare";
-
 
 const mockEarningsReports: EarningsReport[] = [
 	{ fiscalDateEnding: '2021-09-30', reportedEPS: '0.0181' },
@@ -34,8 +30,4 @@ describe('formatChartDate', () => {
 			expect(result).toBe(dt);
 		});
 	});
-});
-
-describe('compare components', () => {
-
 });

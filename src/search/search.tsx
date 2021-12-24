@@ -95,6 +95,7 @@ export const Search = (): React.ReactElement => {
 					<input 
 						type="text" 
 						id="search" 
+						role="searchbox"
 						placeholder="Search for stocks" 
 						value={input} 
 						ref={searchRef}

@@ -115,7 +115,8 @@ export const Stock = ({ stock }: StockProps): React.ReactElement => {
 					</div>
 				</div>
 			) : null}
-			<div className="earnings-chart">
+			<figure className="earnings-chart">
+				<figcaption className="is-sr-only">Earnings per share</figcaption>
 				{ earningsData.length ? (
 					<ResponsiveContainer width="100%" height={160}>
 						<LineChart data={earningsData}>
@@ -130,7 +131,7 @@ export const Stock = ({ stock }: StockProps): React.ReactElement => {
 						</LineChart>
 					</ResponsiveContainer>
 				) : null }
-			</div>
+			</figure>
   			<button
 				type="button"
 				title="Remove"
