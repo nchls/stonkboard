@@ -30,6 +30,9 @@ export const stockSearchResultMap = {
 	"9. matchScore": "matchScore",
 };
 
+/**
+ * Parses a response from Alpha Vantage's stock endpoint
+ */
 export const parseStockSearchResponse = (response: RawStockSearchResponse, map: Record<string, string>): StockSearchResponse => {
 	if (isRateLimitingResponse(response)) {
 		throw new RateLimitError();
@@ -72,6 +75,9 @@ export const quoteSearchResultMap = {
 	"10. change percent": "changePercent",
 };
 
+/**
+ * Parses a response from Alpha Vantage's quote endpoint
+ */
 export const parseQuoteSearchResponse = (response: RawQuoteSearchResponse, map: Record<string, string>): StockQuote => {
 	if (isRateLimitingResponse(response)) {
 		throw new RateLimitError();
@@ -105,6 +111,9 @@ export const earningsReportMap = {
 	reportedEPS: "reportedEPS",
 };
 
+/**
+ * Parses a response from Alpha Vantage's earnings endpoint
+ */
 export const parseEarningsSearchResponse = (response: RawEarningsSearchResponse, map: Record<string, string>): EarningsResponse => {
 	if (isRateLimitingResponse(response)) {
 		throw new RateLimitError();
@@ -128,6 +137,9 @@ export const parseEarningsSearchResponse = (response: RawEarningsSearchResponse,
 	return parsedResponse as EarningsResponse;
 };
 
+/**
+ * Performs an HTTP request against the Alpha Vantage API
+ */
 export const alphaVantageRequest = <RawResponseType, ParsedResponseType>(
 	fn: string, 
 	params: Record<string, string>, 
@@ -159,6 +171,10 @@ export const alphaVantageRequest = <RawResponseType, ParsedResponseType>(
 	});
 };
 
+/**
+ * Returns true if the response from the Alpha Vantage API indicates rate limits have been reached
+ * Unfortunately they don't simply return a 429
+ */
 export const isRateLimitingResponse = (response: RawStockSearchResponse | RawQuoteSearchResponse | RawEarningsSearchResponse): boolean => {
 	return response.Note !== undefined && response.Note.includes("Thank you for using Alpha Vantage!");
 };

@@ -20,6 +20,9 @@ interface EarningsDataPoint {
 // Five years of quarterly reports
 const MAX_REPORTS = 20;
 
+/**
+ * Formats an array of earnings reports into one suitable for rendering with Recharts
+ */
 export const getEarningsData = (reports: EarningsReport[] | undefined): EarningsDataPoint[] => {
 	let dataPoints: EarningsDataPoint[] = [];
 	if (reports !== undefined) {
@@ -36,6 +39,9 @@ export const getEarningsData = (reports: EarningsReport[] | undefined): Earnings
 	return dataPoints;
 };
 
+/**
+ * Formats a YYYY-MM-DD date into one suitable for rendering with Recharts
+ */
 export const formatChartDate = (ts: number): string => {
 	return format(fromUnixTime(ts), "MMM yyyy");
 };
@@ -59,6 +65,7 @@ export const Stock = ({ stock }: StockProps): React.ReactElement => {
 
 	const cachedStock: CachedStock = cachedStocks[stock.key];
 
+	// Retrieve quote and earnings on mount and cache in the Recoil state
 	useEffect(() => {
 		(async () => {
 			if (cachedStock === undefined) {

@@ -21,10 +21,12 @@ export const Search = (): React.ReactElement => {
 	
 	const isMaxPinsReached = (pinnedStocks.length >= MAX_PINNED_STOCKS);
 
+	// Prepare a ref for setting focus back on the search field
 	const searchRef = useRef<HTMLInputElement>(null);
 	
+	// Arrow down in the search field should move focus to the first search result
 	const handleSearchKeyDown = (evt: React.KeyboardEvent) => {
-		if (evt.key === "ArrowDown") {
+		if (evt.key === "ArrowDown" && resultRefs[0] !== undefined) {
 			evt.preventDefault();
 			resultRefs[0].current?.focus();
 		}
@@ -35,16 +37,23 @@ export const Search = (): React.ReactElement => {
 			evt.preventDefault();
 			const prev = resultRefs[index-1];
 			const next = resultRefs[index+1];
+
+			// Arrow down on a result
 			if (evt.key === "ArrowDown") {
 				if (next !== undefined) {
+					// Move focus to the next if possible
 					next.current?.focus();
 				} else {
+					// Otherwise move focus to the first
 					resultRefs[0].current?.focus();
 				}
+			// Arrow up on a result
 			} else {
 				if (prev !== undefined) {
+					// Move focus to the previous if possible
 					prev.current?.focus();
 				} else {
+					// Otherwise move focus back to the search box
 					searchRef.current?.focus();
 				}
 			}
@@ -58,11 +67,14 @@ export const Search = (): React.ReactElement => {
 	};
 
 	const performSearch = useDebouncedCallback(async (query: string): Promise<void> => {
+		// Clear search results when the search term is erased
 		if (query.length === 0) {
 			setSearchResults([]);
 			setIsSearching(false);
 			return;
 		}
+
+		// Perform the search
 		try {
 			setIsSearching(true);
 			const results = await stockSearch(query);
