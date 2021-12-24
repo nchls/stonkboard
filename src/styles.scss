@@ -2,11 +2,10 @@ $scheme-main: #112015;
 $text: #ddd;
 
 #app {
-	background: darken($scheme-main, 1%);
+	background: linear-gradient(to bottom, $scheme-main, darken($scheme-main, 2%));
 }
 
 .wrap {
-	background: $scheme-main;
 	margin: 0 auto;
 	max-width: 1400px;
 	display: flex;
